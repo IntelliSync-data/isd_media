@@ -4,10 +4,10 @@ from odoo import fields, models, api
 class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
-    # Dashboard (computed, not stored)
-    isd_media_total_images = fields.Integer('Total Images', compute='_compute_media_stats')
-    isd_media_total_videos = fields.Integer('Total Videos', compute='_compute_media_stats')
-    isd_media_total_categories = fields.Integer('Total Categories', compute='_compute_media_stats')
+    # Dashboard
+    isd_media_total_images = fields.Integer('Total Images', readonly=True)
+    isd_media_total_videos = fields.Integer('Total Videos', readonly=True)
+    isd_media_total_categories = fields.Integer('Total Categories', readonly=True)
 
     # Limits
     isd_media_max_image_count = fields.Integer('Maximum Image Count')
@@ -38,18 +38,6 @@ class ResConfigSettings(models.TransientModel):
         'isd.media.allowed_origin', string='Allowed Origins',
         compute='_compute_allowed_origins', inverse='_inverse_allowed_origins')
 
-    @api.depends_context('uid')
-    def _compute_media_stats(self):
-        Media = self.env['isd.media'].sudo()
-        Category = self.env['isd.media.category'].sudo()
-        total_images = Media.search_count([('media_type', '=', 'image'), ('active', '=', True)])
-        total_videos = Media.search_count([('media_type', '=', 'video'), ('active', '=', True)])
-        total_categories = Category.search_count([('active', '=', True)])
-        for record in self:
-            record.isd_media_total_images = total_images
-            record.isd_media_total_videos = total_videos
-            record.isd_media_total_categories = total_categories
-
     def _compute_allowed_origins(self):
         origins = self.env['isd.media.allowed_origin'].sudo().search([])
         for record in self:
@@ -62,7 +50,12 @@ class ResConfigSettings(models.TransientModel):
     def get_values(self):
         res = super().get_values()
         ICP = self.env['ir.config_parameter'].sudo()
+        Media = self.env['isd.media'].sudo()
+        Category = self.env['isd.media.category'].sudo()
         res.update(
+            isd_media_total_images=Media.search_count([('media_type', '=', 'image'), ('active', '=', True)]),
+            isd_media_total_videos=Media.search_count([('media_type', '=', 'video'), ('active', '=', True)]),
+            isd_media_total_categories=Category.search_count([('active', '=', True)]),
             isd_media_max_image_count=int(ICP.get_param('isd_media.max_image_count', '0')),
             isd_media_max_video_count=int(ICP.get_param('isd_media.max_video_count', '0')),
             isd_media_max_image_upload_size=float(ICP.get_param('isd_media.max_image_upload_size', '10')),
