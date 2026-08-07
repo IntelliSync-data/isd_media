@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Media List View -->
+    <record id="view_isd_media_list" model="ir.ui.view">
+        <field name="name">isd.media.list</field>
+        <field name="model">isd.media</field>
+        <field name="arch" type="xml">
+            <list string="Media" default_order="sort_order asc, id desc">
+                <field name="thumbnail" widget="image" options="{'size': [60, 60]}" string="Preview"/>
+                <field name="name"/>
+                <field name="media_type" widget="badge"
+                       decoration-info="media_type == 'image'"
+                       decoration-success="media_type == 'video'"/>
+                <field name="category_ids" widget="many2many_tags"/>
+                <field name="sort_order"/>
+                <field name="file_size_display" string="Size"/>
+                <field name="active" widget="boolean_toggle"/>
+                <field name="is_published" string="Published" widget="badge"
+                       decoration-success="is_published"
+                       decoration-danger="not is_published"/>
+                <field name="create_date"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Media Form View -->
+    <record id="view_isd_media_form" model="ir.ui.view">
+        <field name="name">isd.media.form</field>
+        <field name="model">isd.media</field>
+        <field name="arch" type="xml">
+            <form string="Media">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Media Name (optional)"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="media_type" widget="radio"/>
+                            <field name="category_ids" widget="many2many_tags"
+                                   options="{'color_field': 'id'}"
+                                   domain="[('active', '=', True)]"/>
+                            <field name="tag_ids" widget="many2many_tags"/>
+                            <field name="sort_order"/>
+                        </group>
+                        <group>
+                            <field name="media_file" filename="file_name"/>
+                            <field name="file_name" invisible="1"/>
+                            <field name="mime_type"/>
+                            <field name="file_size_display" string="File Size"/>
+                            <field name="storage_provider"/>
+                            <field name="storage_key"/>
+                            <field name="public_url" widget="url"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Preview" name="preview">
+                            <field name="media_type" invisible="1"/>
+                            <!-- Image Preview -->
+                            <div invisible="media_type != 'image'">
+                                <field name="media_file" widget="image" class="oe_avatar"
+                                       options="{'size': [600, 400]}"/>
+                            </div>
+                            <!-- Video Preview -->
+                            <div invisible="media_type != 'video'">
+                                <field name="public_url" invisible="1"/>
+                                <div class="text-muted" invisible="not public_url">
+                                    Video preview available at the public URL above.
+                                </div>
+                            </div>
+                        </page>
+                        <page string="Thumbnail" name="thumbnail">
+                            <group>
+                                <field name="thumbnail" widget="image" options="{'size': [256, 256]}"/>
+                            </group>
+                        </page>
+                        <page string="Publishing" name="publishing">
+                            <group>
+                                <group>
+                                    <field name="publish_from"/>
+                                    <field name="publish_to"/>
+                                </group>
+                                <group>
+                                    <field name="is_published" widget="badge"
+                                           decoration-success="is_published"
+                                           decoration-danger="not is_published"/>
+                                    <field name="active"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Media Search View -->
+    <record id="view_isd_media_search" model="ir.ui.view">
+        <field name="name">isd.media.search</field>
+        <field name="model">isd.media</field>
+        <field name="arch" type="xml">
+            <search string="Search Media">
+                <field name="name"/>
+                <field name="file_name"/>
+                <field name="category_ids"/>
+                <field name="tag_ids"/>
+                <filter name="images" string="Images" domain="[('media_type', '=', 'image')]"/>
+                <filter name="videos" string="Videos" domain="[('media_type', '=', 'video')]"/>
+                <separator/>
+                <filter name="published" string="Published" domain="[('is_published', '=', True)]"/>
+                <filter name="not_published" string="Not Published" domain="[('is_published', '=', False)]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_type" string="Type" context="{'group_by': 'media_type'}"/>
+                    <filter name="group_provider" string="Storage" context="{'group_by': 'storage_provider'}"/>
+                    <filter name="group_create_date" string="Create Date" context="{'group_by': 'create_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Media Action -->
+    <record id="action_isd_media" model="ir.actions.act_window">
+        <field name="name">Upload Media</field>
+        <field name="res_model">isd.media</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_isd_media_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Upload your first media file
+            </p>
+            <p>Upload images and videos to manage them centrally.</p>
+        </field>
+    </record>
+</odoo>

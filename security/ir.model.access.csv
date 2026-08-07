@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_isd_media_user,isd.media.user,model_isd_media,group_media_user,1,1,1,0
+access_isd_media_admin,isd.media.admin,model_isd_media,group_media_admin,1,1,1,1
+access_isd_media_category_user,isd.media.category.user,model_isd_media_category,group_media_user,1,1,1,0
+access_isd_media_category_admin,isd.media.category.admin,model_isd_media_category,group_media_admin,1,1,1,1
+access_isd_media_tag_user,isd.media.tag.user,model_isd_media_tag,group_media_user,1,1,1,0
+access_isd_media_tag_admin,isd.media.tag.admin,model_isd_media_tag,group_media_admin,1,1,1,1
+access_isd_media_allowed_origin_admin,isd.media.allowed_origin.admin,model_isd_media_allowed_origin,group_media_admin,1,1,1,1
+access_isd_media_api_doc_wizard_admin,isd.media.api.doc.wizard.admin,model_isd_media_api_doc_wizard,group_media_admin,1,1,1,1

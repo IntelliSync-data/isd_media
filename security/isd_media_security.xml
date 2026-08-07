@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Module Category -->
+    <record id="module_category_isd_media" model="ir.module.category">
+        <field name="name">ISD Media</field>
+        <field name="sequence">100</field>
+    </record>
+
+    <!-- Media User Group -->
+    <record id="group_media_user" model="res.groups">
+        <field name="name">Media User</field>
+        <field name="category_id" ref="module_category_isd_media"/>
+        <field name="comment">Can upload media and manage categories</field>
+    </record>
+
+    <!-- Media Administrator Group (inherits Media User) -->
+    <record id="group_media_admin" model="res.groups">
+        <field name="name">Media Administrator</field>
+        <field name="category_id" ref="module_category_isd_media"/>
+        <field name="implied_ids" eval="[(4, ref('group_media_user'))]"/>
+        <field name="comment">Full access including configuration</field>
+    </record>
+</odoo>
