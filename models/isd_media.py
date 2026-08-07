@@ -47,6 +47,9 @@ class IsdMedia(models.Model):
     thumbnail = fields.Image('Thumbnail', max_width=256, max_height=256)
     thumbnail_url = fields.Char('Thumbnail URL', compute='_compute_thumbnail_url')
 
+    # Preview (image for images, thumbnail for videos)
+    preview_image = fields.Image('Preview', compute='_compute_preview_image')
+
     # Publish scheduling
     publish_from = fields.Datetime('Publish From')
     publish_to = fields.Datetime('Publish To')
@@ -98,6 +101,14 @@ class IsdMedia(models.Model):
                 continue
             provider = get_storage_provider(record.storage_provider, self.env)
             record.public_url = provider.get_url(record.storage_key)
+
+    @api.depends('media_type', 'media_file', 'thumbnail')
+    def _compute_preview_image(self):
+        for record in self:
+            if record.media_type == 'video':
+                record.preview_image = record.thumbnail
+            else:
+                record.preview_image = record.media_file
 
     @api.depends('thumbnail', 'storage_provider')
     def _compute_thumbnail_url(self):
@@ -222,20 +233,36 @@ class IsdMedia(models.Model):
         if not max_images and not max_videos:
             return
 
+        warnings = []
         for record in records:
             if record.media_type == 'image' and max_images:
                 total = self.search_count([('media_type', '=', 'image'), ('active', '=', True)])
                 if total > max_images:
-                    _logger.warning(
-                        "Image count limit warning: adding image %d/%d allowed.",
-                        total, max_images)
+                    warnings.append(
+                        _("You are adding Image #%(total)s/%(max)s allowed. "
+                          "Please contact your administrator to upgrade.",
+                          total=total, max=max_images))
 
             if record.media_type == 'video' and max_videos:
                 total = self.search_count([('media_type', '=', 'video'), ('active', '=', True)])
                 if total > max_videos:
-                    _logger.warning(
-                        "Video count limit warning: adding video %d/%d allowed.",
-                        total, max_videos)
+                    warnings.append(
+                        _("You are adding Video #%(total)s/%(max)s allowed. "
+                          "Please contact your administrator to upgrade.",
+                          total=total, max=max_videos))
+
+        if warnings:
+            # Send bus notification to current user
+            self.env['bus.bus']._sendone(
+                self.env.user.partner_id,
+                'simple_notification',
+                {
+                    'title': _("Media Limit Warning"),
+                    'message': '\n'.join(warnings),
+                    'type': 'warning',
+                    'sticky': True,
+                },
+            )
 
     @staticmethod
     def _generate_video_thumbnail(file_data):

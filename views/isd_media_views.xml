@@ -6,7 +6,7 @@
         <field name="model">isd.media</field>
         <field name="arch" type="xml">
             <list string="Media" default_order="sort_order asc, id desc">
-                <field name="thumbnail" widget="image" options="{'size': [60, 60]}" string="Preview"/>
+                <field name="preview_image" widget="image" options="{'size': [60, 60]}" string="Preview"/>
                 <field name="name"/>
                 <field name="media_type" widget="badge"
                        decoration-info="media_type == 'image'"
@@ -15,9 +15,7 @@
                 <field name="sort_order"/>
                 <field name="file_size_display" string="Size"/>
                 <field name="active" widget="boolean_toggle"/>
-                <field name="is_published" string="Published" widget="badge"
-                       decoration-success="is_published"
-                       decoration-danger="not is_published"/>
+                <field name="is_published" string="Published" widget="boolean"/>
                 <field name="create_date"/>
             </list>
         </field>
@@ -70,7 +68,7 @@
                                 </div>
                             </div>
                         </page>
-                        <page string="Thumbnail" name="thumbnail">
+                        <page string="Thumbnail" name="thumbnail" invisible="media_type != 'video'">
                             <group>
                                 <field name="thumbnail" widget="image" options="{'size': [256, 256]}"/>
                             </group>

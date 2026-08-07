@@ -5,7 +5,8 @@ class IsdMediaApiDocWizard(models.TransientModel):
     _name = 'isd.media.api.doc.wizard'
     _description = 'Media API Documentation'
 
-    documentation_html = fields.Html('Documentation', compute='_compute_documentation', sanitize=False)
+    documentation_html = fields.Html('Documentation', compute='_compute_documentation',
+                                     sanitize=False, sanitize_form=False, sanitize_tags=False)
 
     @api.depends_context('uid')
     def _compute_documentation(self):

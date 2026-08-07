@@ -19,7 +19,7 @@
     'author': 'IntelliSync Data',
     'website': 'https://intellisyncdata.com',
     'license': 'LGPL-3',
-    'depends': ['base', 'base_setup'],
+    'depends': ['base', 'base_setup', 'bus'],
     'data': [
         # Security
         'security/isd_media_security.xml',

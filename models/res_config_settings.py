@@ -38,6 +38,7 @@ class ResConfigSettings(models.TransientModel):
         'isd.media.allowed_origin', string='Allowed Origins',
         compute='_compute_allowed_origins', inverse='_inverse_allowed_origins')
 
+    @api.depends_context('uid')
     def _compute_media_stats(self):
         Media = self.env['isd.media'].sudo()
         Category = self.env['isd.media.category'].sudo()
