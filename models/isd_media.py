@@ -1,6 +1,7 @@
 import base64
 import logging
 import mimetypes
+import os
 
 from odoo import fields, models, api, _
 from odoo.exceptions import ValidationError
@@ -28,7 +29,7 @@ class IsdMedia(models.Model):
 
     # File data (Binary field for upload)
     media_file = fields.Binary('Media File', required=True, attachment=True)
-    file_name = fields.Char('File Name', readonly=True)
+    file_name = fields.Char('File Name')
     mime_type = fields.Char('MIME Type', readonly=True)
     file_size = fields.Integer('File Size (bytes)', readonly=True)
     file_size_display = fields.Char('File Size', compute='_compute_file_size_display')
@@ -156,8 +157,14 @@ class IsdMedia(models.Model):
         for vals in vals_list:
             if vals.get('media_file'):
                 file_data = base64.b64decode(vals['media_file'])
-                file_name = vals.get('file_name', 'unnamed')
+                file_name = vals.get('file_name') or 'unnamed'
                 mime = mimetypes.guess_type(file_name)[0] or 'application/octet-stream'
+
+                # If no extension in file_name, add one from mime type
+                if not os.path.splitext(file_name)[1]:
+                    ext = mimetypes.guess_extension(mime) or ''
+                    if ext:
+                        file_name = file_name + ext
 
                 vals['file_size'] = len(file_data)
                 vals['mime_type'] = mime
@@ -186,8 +193,14 @@ class IsdMedia(models.Model):
             provider = get_storage_provider(provider_type, self.env)
 
             file_data = base64.b64decode(vals['media_file'])
-            file_name = vals.get('file_name', self.file_name or 'unnamed')
+            file_name = vals.get('file_name') or self.file_name or 'unnamed'
             mime = mimetypes.guess_type(file_name)[0] or 'application/octet-stream'
+
+            # If no extension in file_name, add one from mime type
+            if not os.path.splitext(file_name)[1]:
+                ext = mimetypes.guess_extension(mime) or ''
+                if ext:
+                    file_name = file_name + ext
 
             # Delete old file from storage
             for record in self:
