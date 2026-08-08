@@ -7,7 +7,7 @@
         <field name="inherit_id" ref="base.res_config_settings_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//form" position="inside">
-                <app data-string="Media" string="Media" name="isd_media">
+                <app data-string="ISD Media" string="ISD Media" name="isd_media">
                     <!-- Dashboard -->
                     <block title="Dashboard" id="isd_media_dashboard">
                         <setting string="Media Statistics" help="Real-time overview of media library">

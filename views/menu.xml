@@ -2,7 +2,7 @@
 <odoo>
     <!-- Root Menu -->
     <menuitem id="menu_isd_media_root"
-              name="Media"
+              name="ISD Media"
               web_icon="isd_media,static/description/icon.png"
               sequence="100"/>
 
