@@ -23,7 +23,7 @@
                                         <div class="h1 text-success">
                                             <field name="isd_media_total_videos"/>
                                         </div>
-                                        <div class="text-muted">Videos</div>
+                                        <div class="text-muted">Videos / URLs</div>
                                     </div>
                                     <div class="col-4 text-center">
                                         <div class="h1 text-info">
@@ -45,7 +45,7 @@
                                 </div>
                             </div>
                         </setting>
-                        <setting string="Maximum Video Count" help="Warning threshold for video count (0 = no limit)">
+                        <setting string="Maximum Video/URL Count" help="Warning threshold for video, Facebook and YouTube count (0 = no limit)">
                             <div class="content-group">
                                 <div class="mt8">
                                     <field name="isd_media_max_video_count"/>

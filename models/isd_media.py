@@ -18,7 +18,17 @@ class IsdMedia(models.Model):
     media_type = fields.Selection([
         ('image', 'Image'),
         ('video', 'Video'),
+        ('facebook', 'Facebook'),
+        ('youtube', 'YouTube'),
     ], string='Media Type', required=True)
+
+    display_size = fields.Selection([
+        ('small', 'Small'),
+        ('medium', 'Medium'),
+        ('large', 'Large'),
+    ], string='Size', default='medium')
+
+    external_url = fields.Char('URL')
 
     category_ids = fields.Many2many(
         'isd.media.category', string='Categories', required=True,
@@ -27,8 +37,8 @@ class IsdMedia(models.Model):
 
     sort_order = fields.Integer('Sort Order', default=10)
 
-    # File data (Binary field for upload)
-    media_file = fields.Binary('Media File', required=True, attachment=True)
+    # File data (Binary field for upload, required for image/video only)
+    media_file = fields.Binary('Media File', attachment=True)
     file_name = fields.Char('File Name')
     mime_type = fields.Char('MIME Type', readonly=True)
     file_size = fields.Integer('File Size (bytes)', readonly=True)
@@ -58,11 +68,13 @@ class IsdMedia(models.Model):
 
     active = fields.Boolean('Active', default=True)
 
-    @api.constrains('media_file')
+    @api.constrains('media_file', 'media_type', 'external_url')
     def _check_media_file(self):
         for record in self:
-            if not record.media_file:
-                raise ValidationError(_("Media file is required."))
+            if record.media_type in ('image', 'video') and not record.media_file:
+                raise ValidationError(_("Media file is required for image and video types."))
+            if record.media_type in ('facebook', 'youtube') and not record.external_url:
+                raise ValidationError(_("URL is required for Facebook and YouTube types."))
 
     @api.constrains('media_file', 'media_type')
     def _check_file_size(self):
@@ -71,7 +83,7 @@ class IsdMedia(models.Model):
         max_video_size = float(ICP.get_param('isd_media.max_video_upload_size', '100'))
 
         for record in self:
-            if not record.file_size:
+            if not record.file_size or record.media_type in ('facebook', 'youtube'):
                 continue
             size_mb = record.file_size / (1024 * 1024)
             if record.media_type == 'image' and size_mb > max_image_size:
@@ -93,10 +105,13 @@ class IsdMedia(models.Model):
             else:
                 record.file_size_display = f'{record.file_size / (1024 * 1024):.2f} MB'
 
-    @api.depends('storage_key', 'storage_provider')
+    @api.depends('storage_key', 'storage_provider', 'external_url', 'media_type')
     def _compute_public_url(self):
         from ..storage import get_storage_provider
         for record in self:
+            if record.media_type in ('facebook', 'youtube'):
+                record.public_url = record.external_url or False
+                continue
             if not record.storage_key or not record.storage_provider:
                 record.public_url = False
                 continue
@@ -106,7 +121,7 @@ class IsdMedia(models.Model):
     @api.depends('media_type', 'media_file', 'thumbnail')
     def _compute_preview_image(self):
         for record in self:
-            if record.media_type == 'video':
+            if record.media_type in ('video', 'facebook', 'youtube'):
                 record.preview_image = record.thumbnail
             else:
                 record.preview_image = record.media_file
@@ -155,6 +170,18 @@ class IsdMedia(models.Model):
         provider = get_storage_provider(provider_type, self.env)
 
         for vals in vals_list:
+            media_type = vals.get('media_type')
+
+            # Facebook/YouTube: no file upload, just URL
+            if media_type in ('facebook', 'youtube'):
+                vals.pop('media_file', None)
+                vals.pop('file_name', None)
+                vals['file_size'] = 0
+                vals['mime_type'] = False
+                vals['storage_key'] = False
+                vals['storage_provider'] = False
+                continue
+
             if vals.get('media_file'):
                 file_data = base64.b64decode(vals['media_file'])
                 file_name = vals.get('file_name') or 'unnamed'
@@ -176,7 +203,7 @@ class IsdMedia(models.Model):
                 vals['storage_key'] = storage_key
 
                 # Generate thumbnail for video
-                if vals.get('media_type') == 'video' and not vals.get('thumbnail'):
+                if media_type == 'video' and not vals.get('thumbnail'):
                     vals['thumbnail'] = self._generate_video_thumbnail(file_data)
 
         records = super().create(vals_list)
@@ -187,7 +214,21 @@ class IsdMedia(models.Model):
     def write(self, vals):
         from ..storage import get_storage_provider
 
-        if vals.get('media_file'):
+        media_type = vals.get('media_type') or (self[0].media_type if len(self) == 1 else None)
+
+        # If switching to facebook/youtube, clean up old storage file
+        if media_type in ('facebook', 'youtube'):
+            for record in self:
+                if record.storage_key and record.storage_provider:
+                    old_provider = get_storage_provider(record.storage_provider, self.env)
+                    old_provider.delete(record.storage_key)
+            vals['media_file'] = False
+            vals['file_name'] = False
+            vals['file_size'] = 0
+            vals['mime_type'] = False
+            vals['storage_key'] = False
+            vals['storage_provider'] = False
+        elif vals.get('media_file'):
             ICP = self.env['ir.config_parameter'].sudo()
             provider_type = ICP.get_param('isd_media.storage_provider', 'local')
             provider = get_storage_provider(provider_type, self.env)
@@ -216,7 +257,7 @@ class IsdMedia(models.Model):
             vals['storage_key'] = storage_key
             vals['storage_provider'] = provider_type
 
-            if vals.get('media_type', self.media_type) == 'video' and not vals.get('thumbnail'):
+            if media_type == 'video' and not vals.get('thumbnail'):
                 vals['thumbnail'] = self._generate_video_thumbnail(file_data)
 
         res = super().write(vals)
@@ -256,11 +297,14 @@ class IsdMedia(models.Model):
                           "Please contact your administrator to upgrade.",
                           total=total, max=max_images))
 
-            if record.media_type == 'video' and max_videos:
-                total = self.search_count([('media_type', '=', 'video'), ('active', '=', True)])
+            if record.media_type in ('video', 'facebook', 'youtube') and max_videos:
+                total = self.search_count([
+                    ('media_type', 'in', ('video', 'facebook', 'youtube')),
+                    ('active', '=', True),
+                ])
                 if total > max_videos:
                     warnings.append(
-                        _("You are adding Video #%(total)s/%(max)s allowed. "
+                        _("You are adding Video/URL #%(total)s/%(max)s allowed. "
                           "Please contact your administrator to upgrade.",
                           total=total, max=max_videos))
 

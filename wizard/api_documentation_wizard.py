@@ -113,6 +113,7 @@ class IsdMediaApiDocWizard(models.TransientModel):
             "id": 1,
             "name": "Home Banner",
             "type": "image",
+            "display_size": "medium",
             "categories": [{"id": 1, "name": "Banner"}],
             "tags": [{"id": 1, "name": "featured"}],
             "url": "/isd_media/file/media/abc123.jpg",
@@ -168,6 +169,16 @@ App Start  -->  GET /api/v1/version  -->  Version Changed?
             <pre style="background: #2d3436; color: #dfe6e9; padding: 15px; border-radius: 6px; overflow-x: auto;">curl -X GET %(base_url)s/api/v1/version</pre>
 
             <hr style="margin: 30px 0; border: 1px solid #ecf0f1;"/>
+
+            <h2 style="color: #2c3e50;">Media Types</h2>
+            <ul style="line-height: 2;">
+                <li><strong>image</strong> - Uploaded image file (stored locally or on S3)</li>
+                <li><strong>video</strong> - Uploaded video file (stored locally or on S3)</li>
+                <li><strong>facebook</strong> - External Facebook URL (no file upload)</li>
+                <li><strong>youtube</strong> - External YouTube URL (no file upload)</li>
+            </ul>
+            <p>Facebook and YouTube types include an <code>external_url</code> field in the response.</p>
+            <p>All types include a <code>display_size</code> field with values: <code>small</code>, <code>medium</code>, or <code>large</code>.</p>
 
             <h2 style="color: #2c3e50;">Business Rules</h2>
             <ul style="line-height: 2;">

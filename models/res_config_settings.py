@@ -6,7 +6,7 @@ class ResConfigSettings(models.TransientModel):
 
     # Dashboard
     isd_media_total_images = fields.Integer('Total Images', readonly=True)
-    isd_media_total_videos = fields.Integer('Total Videos', readonly=True)
+    isd_media_total_videos = fields.Integer('Total Videos/URLs', readonly=True)
     isd_media_total_categories = fields.Integer('Total Categories', readonly=True)
 
     # Limits
@@ -54,7 +54,10 @@ class ResConfigSettings(models.TransientModel):
         Category = self.env['isd.media.category'].sudo()
         res.update(
             isd_media_total_images=Media.search_count([('media_type', '=', 'image'), ('active', '=', True)]),
-            isd_media_total_videos=Media.search_count([('media_type', '=', 'video'), ('active', '=', True)]),
+            isd_media_total_videos=Media.search_count([
+                ('media_type', 'in', ('video', 'facebook', 'youtube')),
+                ('active', '=', True),
+            ]),
             isd_media_total_categories=Category.search_count([('active', '=', True)]),
             isd_media_max_image_count=int(ICP.get_param('isd_media.max_image_count', '0')),
             isd_media_max_video_count=int(ICP.get_param('isd_media.max_video_count', '0')),

@@ -77,10 +77,11 @@ class MediaService:
                 'name': tag.name,
             })
 
-        return {
+        result = {
             'id': record.id,
             'name': record.name or '',
             'type': record.media_type,
+            'display_size': record.display_size or 'medium',
             'categories': categories,
             'tags': tags,
             'url': record.public_url or '',
@@ -89,3 +90,8 @@ class MediaService:
             'size': record.file_size,
             'created_at': record.create_date.isoformat() if record.create_date else None,
         }
+
+        if record.media_type in ('facebook', 'youtube'):
+            result['external_url'] = record.external_url or ''
+
+        return result
