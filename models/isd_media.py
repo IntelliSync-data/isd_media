@@ -18,9 +18,14 @@ class IsdMedia(models.Model):
     media_type = fields.Selection([
         ('image', 'Image'),
         ('video', 'Video'),
+        ('file', 'File'),
         ('facebook', 'Facebook'),
         ('youtube', 'YouTube'),
     ], string='Media Type', required=True)
+
+    ALLOWED_FILE_EXTENSIONS = (
+        '.xlsx', '.xls', '.csv', '.pdf', '.doc', '.docx', '.txt', '.md',
+    )
 
     display_size = fields.Selection([
         ('small', 'Small'),
@@ -71,16 +76,24 @@ class IsdMedia(models.Model):
     @api.constrains('media_file', 'media_type', 'external_url')
     def _check_media_file(self):
         for record in self:
-            if record.media_type in ('image', 'video') and not record.media_file:
-                raise ValidationError(_("Media file is required for image and video types."))
+            if record.media_type in ('image', 'video', 'file') and not record.media_file:
+                raise ValidationError(_("Media file is required for image, video and file types."))
             if record.media_type in ('facebook', 'youtube') and not record.external_url:
                 raise ValidationError(_("URL is required for Facebook and YouTube types."))
+            if record.media_type == 'file' and record.file_name:
+                ext = os.path.splitext(record.file_name)[1].lower()
+                if ext not in self.ALLOWED_FILE_EXTENSIONS:
+                    raise ValidationError(
+                        _("File type '%s' is not allowed. Allowed: %s") % (ext, ', '.join(self.ALLOWED_FILE_EXTENSIONS))
+                    )
 
     @api.constrains('media_file', 'media_type')
     def _check_file_size(self):
         ICP = self.env['ir.config_parameter'].sudo()
         max_image_size = float(ICP.get_param('isd_media.max_image_upload_size', '10'))
         max_video_size = float(ICP.get_param('isd_media.max_video_upload_size', '100'))
+
+        max_file_size = float(ICP.get_param('isd_media.max_file_upload_size', '50'))
 
         for record in self:
             if not record.file_size or record.media_type in ('facebook', 'youtube'):
@@ -92,6 +105,9 @@ class IsdMedia(models.Model):
             if record.media_type == 'video' and size_mb > max_video_size:
                 raise ValidationError(
                     _("Video file size (%.1f MB) exceeds maximum allowed (%.1f MB).") % (size_mb, max_video_size))
+            if record.media_type == 'file' and size_mb > max_file_size:
+                raise ValidationError(
+                    _("File size (%.1f MB) exceeds maximum allowed (%.1f MB).") % (size_mb, max_file_size))
 
     @api.depends('file_size')
     def _compute_file_size_display(self):
@@ -123,6 +139,8 @@ class IsdMedia(models.Model):
         for record in self:
             if record.media_type in ('video', 'facebook', 'youtube'):
                 record.preview_image = record.thumbnail
+            elif record.media_type == 'file':
+                record.preview_image = False
             else:
                 record.preview_image = record.media_file
 
@@ -283,8 +301,9 @@ class IsdMedia(models.Model):
         ICP = self.env['ir.config_parameter'].sudo()
         max_images = int(ICP.get_param('isd_media.max_image_count', '0'))
         max_videos = int(ICP.get_param('isd_media.max_video_count', '0'))
+        max_files = int(ICP.get_param('isd_media.max_file_count', '0'))
 
-        if not max_images and not max_videos:
+        if not max_images and not max_videos and not max_files:
             return
 
         warnings = []
@@ -307,6 +326,14 @@ class IsdMedia(models.Model):
                         _("You are adding Video/URL #%(total)s/%(max)s allowed. "
                           "Please contact your administrator to upgrade.",
                           total=total, max=max_videos))
+
+            if record.media_type == 'file' and max_files:
+                total = self.search_count([('media_type', '=', 'file'), ('active', '=', True)])
+                if total > max_files:
+                    warnings.append(
+                        _("You are adding File #%(total)s/%(max)s allowed. "
+                          "Please contact your administrator to upgrade.",
+                          total=total, max=max_files))
 
         if warnings:
             # Send bus notification to current user

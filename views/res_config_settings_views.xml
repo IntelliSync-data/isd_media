@@ -13,19 +13,25 @@
                         <setting string="Media Statistics" help="Real-time overview of media library">
                             <div class="content-group">
                                 <div class="row mt8">
-                                    <div class="col-4 text-center">
+                                    <div class="col-3 text-center">
                                         <div class="h1 text-primary">
                                             <field name="isd_media_total_images"/>
                                         </div>
                                         <div class="text-muted">Images</div>
                                     </div>
-                                    <div class="col-4 text-center">
+                                    <div class="col-3 text-center">
                                         <div class="h1 text-success">
                                             <field name="isd_media_total_videos"/>
                                         </div>
                                         <div class="text-muted">Videos / URLs</div>
                                     </div>
-                                    <div class="col-4 text-center">
+                                    <div class="col-3 text-center">
+                                        <div class="h1 text-warning">
+                                            <field name="isd_media_total_files"/>
+                                        </div>
+                                        <div class="text-muted">Files</div>
+                                    </div>
+                                    <div class="col-3 text-center">
                                         <div class="h1 text-info">
                                             <field name="isd_media_total_categories"/>
                                         </div>
@@ -52,6 +58,13 @@
                                 </div>
                             </div>
                         </setting>
+                        <setting string="Maximum File Count" help="Warning threshold for file count (0 = no limit)">
+                            <div class="content-group">
+                                <div class="mt8">
+                                    <field name="isd_media_max_file_count"/>
+                                </div>
+                            </div>
+                        </setting>
                         <setting string="Maximum Image Upload Size (MB)" help="Maximum file size for image uploads">
                             <div class="content-group">
                                 <div class="mt8">
@@ -63,6 +76,13 @@
                             <div class="content-group">
                                 <div class="mt8">
                                     <field name="isd_media_max_video_upload_size"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="Maximum File Upload Size (MB)" help="Maximum file size for document uploads (xlsx, pdf, doc, etc.)">
+                            <div class="content-group">
+                                <div class="mt8">
+                                    <field name="isd_media_max_file_upload_size"/>
                                 </div>
                             </div>
                         </setting>

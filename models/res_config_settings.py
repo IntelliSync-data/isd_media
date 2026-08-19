@@ -7,13 +7,16 @@ class ResConfigSettings(models.TransientModel):
     # Dashboard
     isd_media_total_images = fields.Integer('Total Images', readonly=True)
     isd_media_total_videos = fields.Integer('Total Videos/URLs', readonly=True)
+    isd_media_total_files = fields.Integer('Total Files', readonly=True)
     isd_media_total_categories = fields.Integer('Total Categories', readonly=True)
 
     # Limits
     isd_media_max_image_count = fields.Integer('Maximum Image Count')
     isd_media_max_video_count = fields.Integer('Maximum Video Count')
+    isd_media_max_file_count = fields.Integer('Maximum File Count')
     isd_media_max_image_upload_size = fields.Float('Maximum Image Upload Size (MB)', default=10.0)
     isd_media_max_video_upload_size = fields.Float('Maximum Video Upload Size (MB)', default=100.0)
+    isd_media_max_file_upload_size = fields.Float('Maximum File Upload Size (MB)', default=50.0)
 
     # API
     isd_media_api_max_return = fields.Integer('API Maximum Return', default=100)
@@ -58,11 +61,14 @@ class ResConfigSettings(models.TransientModel):
                 ('media_type', 'in', ('video', 'facebook', 'youtube')),
                 ('active', '=', True),
             ]),
+            isd_media_total_files=Media.search_count([('media_type', '=', 'file'), ('active', '=', True)]),
             isd_media_total_categories=Category.search_count([('active', '=', True)]),
             isd_media_max_image_count=int(ICP.get_param('isd_media.max_image_count', '0')),
             isd_media_max_video_count=int(ICP.get_param('isd_media.max_video_count', '0')),
+            isd_media_max_file_count=int(ICP.get_param('isd_media.max_file_count', '0')),
             isd_media_max_image_upload_size=float(ICP.get_param('isd_media.max_image_upload_size', '10')),
             isd_media_max_video_upload_size=float(ICP.get_param('isd_media.max_video_upload_size', '100')),
+            isd_media_max_file_upload_size=float(ICP.get_param('isd_media.max_file_upload_size', '50')),
             isd_media_api_max_return=int(ICP.get_param('isd_media.api_max_return', '100')),
             isd_media_storage_provider=ICP.get_param('isd_media.storage_provider', 'local'),
             isd_media_s3_bucket_name=ICP.get_param('isd_media.s3_bucket_name', ''),
@@ -80,8 +86,10 @@ class ResConfigSettings(models.TransientModel):
         ICP = self.env['ir.config_parameter'].sudo()
         ICP.set_param('isd_media.max_image_count', str(self.isd_media_max_image_count))
         ICP.set_param('isd_media.max_video_count', str(self.isd_media_max_video_count))
+        ICP.set_param('isd_media.max_file_count', str(self.isd_media_max_file_count))
         ICP.set_param('isd_media.max_image_upload_size', str(self.isd_media_max_image_upload_size))
         ICP.set_param('isd_media.max_video_upload_size', str(self.isd_media_max_video_upload_size))
+        ICP.set_param('isd_media.max_file_upload_size', str(self.isd_media_max_file_upload_size))
         ICP.set_param('isd_media.api_max_return', str(self.isd_media_api_max_return))
         ICP.set_param('isd_media.storage_provider', self.isd_media_storage_provider)
         ICP.set_param('isd_media.s3_bucket_name', self.isd_media_s3_bucket_name or '')

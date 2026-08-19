@@ -11,6 +11,7 @@
                 <field name="media_type" widget="badge"
                        decoration-info="media_type == 'image'"
                        decoration-success="media_type == 'video'"
+                       decoration-muted="media_type == 'file'"
                        decoration-warning="media_type == 'facebook'"
                        decoration-danger="media_type == 'youtube'"/>
                 <field name="category_ids" widget="many2many_tags"/>
@@ -81,6 +82,12 @@
                                     Video preview available at the public URL above.
                                 </div>
                             </div>
+                            <!-- File Info -->
+                            <div invisible="media_type != 'file'">
+                                <div class="text-muted">
+                                    File available for download at the public URL above.
+                                </div>
+                            </div>
                             <!-- Facebook/YouTube Preview -->
                             <div invisible="media_type not in ('facebook', 'youtube')">
                                 <field name="external_url" invisible="1"/>
@@ -126,6 +133,7 @@
                 <field name="tag_ids"/>
                 <filter name="images" string="Images" domain="[('media_type', '=', 'image')]"/>
                 <filter name="videos" string="Videos" domain="[('media_type', '=', 'video')]"/>
+                <filter name="files" string="Files" domain="[('media_type', '=', 'file')]"/>
                 <filter name="facebook" string="Facebook" domain="[('media_type', '=', 'facebook')]"/>
                 <filter name="youtube" string="YouTube" domain="[('media_type', '=', 'youtube')]"/>
                 <separator/>
