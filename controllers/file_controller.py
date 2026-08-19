@@ -34,11 +34,14 @@ class IsdMediaFileController(http.Controller):
         with open(file_path, 'rb') as f:
             file_data = f.read()
 
-        return request.make_response(
-            file_data,
-            headers=[
-                ('Content-Type', mime_type),
-                ('Content-Length', str(len(file_data))),
-                ('Cache-Control', 'public, max-age=31536000'),
-            ],
-        )
+        headers = [
+            ('Content-Type', mime_type),
+            ('Content-Length', str(len(file_data))),
+            ('Cache-Control', 'public, max-age=31536000'),
+        ]
+
+        if kwargs.get('download'):
+            filename = os.path.basename(file_path)
+            headers.append(('Content-Disposition', f'attachment; filename="{filename}"'))
+
+        return request.make_response(file_data, headers=headers)
