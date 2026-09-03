@@ -1,5 +1,5 @@
 {
-    'name': 'ISD Media Service',
+    'name': 'Media Service (by ISD)',
     'version': '18.0.1.0.0',
     'category': 'ISD Modules',
     'summary': 'Centralized Media Service for ISD Platform',
