@@ -148,7 +148,7 @@ class IsdMedia(models.Model):
     def _compute_thumbnail_url(self):
         for record in self:
             if record.thumbnail:
-                record.thumbnail_url = f'/web/image/isd.media/{record.id}/thumbnail'
+                record.thumbnail_url = f'/isd_media/thumbnail/{record.id}'
             else:
                 record.thumbnail_url = False
 

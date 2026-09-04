@@ -1,3 +1,4 @@
+import base64
 import logging
 import os
 
@@ -10,6 +11,21 @@ _logger = logging.getLogger(__name__)
 
 class IsdMediaFileController(http.Controller):
     """Controller to serve locally stored media files."""
+
+    @http.route('/isd_media/thumbnail/<int:media_id>', type='http', auth='public', csrf=False)
+    def serve_thumbnail(self, media_id, **kwargs):
+        """Serve media thumbnail publicly."""
+        media = request.env['isd.media'].sudo().browse(media_id)
+        if not media.exists() or not media.thumbnail:
+            return request.not_found()
+
+        image_data = base64.b64decode(media.thumbnail)
+        headers = [
+            ('Content-Type', 'image/jpeg'),
+            ('Content-Length', str(len(image_data))),
+            ('Cache-Control', 'public, max-age=31536000'),
+        ]
+        return request.make_response(image_data, headers=headers)
 
     @http.route('/isd_media/file/<path:storage_key>', type='http', auth='public', csrf=False)
     def serve_file(self, storage_key, **kwargs):
