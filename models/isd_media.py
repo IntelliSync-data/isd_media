@@ -144,11 +144,12 @@ class IsdMedia(models.Model):
             else:
                 record.preview_image = record.media_file
 
-    @api.depends('thumbnail', 'storage_provider')
+    @api.depends('thumbnail', 'write_date')
     def _compute_thumbnail_url(self):
         for record in self:
             if record.thumbnail:
-                record.thumbnail_url = f'/isd_media/thumbnail/{record.id}'
+                version = int(record.write_date.timestamp()) if record.write_date else 0
+                record.thumbnail_url = f'/isd_media/thumbnail/{record.id}?v={version}'
             else:
                 record.thumbnail_url = False
 
@@ -347,6 +348,15 @@ class IsdMedia(models.Model):
                     'sticky': True,
                 },
             )
+
+    def action_regenerate_thumbnail(self):
+        for record in self:
+            if record.media_type != 'video' or not record.media_file:
+                continue
+            file_data = base64.b64decode(record.media_file)
+            thumbnail = self._generate_video_thumbnail(file_data)
+            if thumbnail:
+                record.write({'thumbnail': thumbnail})
 
     @staticmethod
     def _generate_video_thumbnail(file_data):

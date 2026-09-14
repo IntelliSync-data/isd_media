@@ -31,6 +31,11 @@
         <field name="model">isd.media</field>
         <field name="arch" type="xml">
             <form string="Media">
+                <header>
+                    <button name="action_regenerate_thumbnail" string="Regenerate Thumbnail"
+                            type="object" class="btn-secondary"
+                            invisible="media_type != 'video'"/>
+                </header>
                 <sheet>
                     <div class="oe_title">
                         <h1>
