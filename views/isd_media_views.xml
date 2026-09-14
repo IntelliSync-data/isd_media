@@ -155,6 +155,7 @@
         <field name="name">Upload Media</field>
         <field name="res_model">isd.media</field>
         <field name="view_mode">list,form</field>
+        <field name="path">media-upload</field>
         <field name="search_view_id" ref="view_isd_media_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">

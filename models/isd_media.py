@@ -60,7 +60,7 @@ class IsdMedia(models.Model):
     public_url = fields.Char('Public URL', compute='_compute_public_url')
 
     # Thumbnail
-    thumbnail = fields.Image('Thumbnail', max_width=256, max_height=256)
+    thumbnail = fields.Image('Thumbnail', max_width=512, max_height=512)
     thumbnail_url = fields.Char('Thumbnail URL', compute='_compute_thumbnail_url')
 
     # Preview (image for images, thumbnail for videos)
